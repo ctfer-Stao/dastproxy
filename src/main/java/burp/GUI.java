@@ -104,7 +104,7 @@ public class GUI implements IMessageEditorController {
         gbc_tfPort.gridy = 0;
         ConfigPanel.add(tfPort, gbc_tfPort);
 
-        lbUsername = new JLabel("Username:");
+        lbUsername = new JLabel("taskid:");
         GridBagConstraints gbc_lbUsername = new GridBagConstraints();
         gbc_lbUsername.fill = 2;
         gbc_lbUsername.insets = new Insets(0, 0, 0, 5);
@@ -128,7 +128,7 @@ public class GUI implements IMessageEditorController {
         gbc_lbPassword.insets = new Insets(0, 0, 0, 5);
         gbc_lbPassword.gridx = 6;
         gbc_lbPassword.gridy = 0;
-        ConfigPanel.add(lbPassword, gbc_lbPassword);
+//        ConfigPanel.add(lbPassword, gbc_lbPassword);
 
         tfPassword = new JTextField();
         tfPassword.setText("");
@@ -138,7 +138,7 @@ public class GUI implements IMessageEditorController {
         gbc_tfPassword.insets = new Insets(0, 0, 0, 5);
         gbc_tfPassword.gridx = 7;
         gbc_tfPassword.gridy = 0;
-        ConfigPanel.add(tfPassword, gbc_tfPassword);
+//        ConfigPanel.add(tfPassword, gbc_tfPassword);
 
         lbTimeout = new JLabel("Timeout:");
         GridBagConstraints gbc_lbTimeout = new GridBagConstraints();
@@ -195,7 +195,7 @@ public class GUI implements IMessageEditorController {
                     Config.PROXY_PORT = Integer.valueOf(tfPort.getText());
                     Config.PROXY_TIMEOUT = Integer.valueOf(tfTimeout.getText());
                     Config.PROXY_USERNAME = tfUsername.getText();
-                    Config.PROXY_PASSWORD = tfPassword.getText();
+//                    Config.PROXY_PASSWORD = tfPassword.getText();
                     Config.DOMAIN_REGX = tfDomain.getText();
                     Config.SUFFIX_REGX = tfExcludeSuffix.getText();
                     Config.INTERVAL_TIME = Integer.valueOf(tfIntervalTime.getText());

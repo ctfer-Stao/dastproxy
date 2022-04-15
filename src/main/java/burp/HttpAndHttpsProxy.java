@@ -38,7 +38,7 @@ public class HttpAndHttpsProxy {
         Thread.sleep(Config.INTERVAL_TIME);
         return HttpsProxy(url, headers, reqbody, Config.PROXY_HOST, Config.PROXY_PORT,Config.PROXY_USERNAME,Config.PROXY_PASSWORD,Config.PROXY_TIMEOUT);
     }
-    public static Headers SetHeaders(List<String> headers) {
+    public static Headers SetHeaders(List<String> headers,String username) {
         Headers Headers = null;
         okhttp3.Headers.Builder headersbuilder = new okhttp3.Headers.Builder();
         for(String header:headers){
@@ -50,8 +50,16 @@ public class HttpAndHttpsProxy {
             String[] h = header.split(":",2);
             String header_key = h[0].trim();
             String header_value = h[1].trim();
+            if (header_key.toLowerCase().equals("user-agent")){
+                header_value+="; shopee-dast-pass";
+
+            }
+
             headersbuilder.add(header_key, header_value);
+
         }
+//        String credential = Credentials.basic(username, password);
+        headersbuilder.add("dast-task-id",username);
 
 
         Headers = headersbuilder.build();
@@ -88,12 +96,12 @@ public class HttpAndHttpsProxy {
 
 
 
-            Headers setHeaders = SetHeaders(headers);
+            Headers setHeaders = SetHeaders(headers,username);
             X509TrustManager manager = SSLSocketClientUtil.getX509TrustManager();
 
             client = new OkHttpClient().newBuilder().
                     connectTimeout(timeout, TimeUnit.MILLISECONDS).readTimeout(timeout, TimeUnit.MILLISECONDS).proxy(proxy1)
-                    .proxyAuthenticator(proxyAuthenticator)
+//                    .proxyAuthenticator(proxyAuthenticator)
                     .sslSocketFactory(SSLSocketClientUtil.getSocketFactory(manager), manager)// 忽略校验
                     .hostnameVerifier(SSLSocketClientUtil.getHostnameVerifier())//忽略校验
                     .build();
