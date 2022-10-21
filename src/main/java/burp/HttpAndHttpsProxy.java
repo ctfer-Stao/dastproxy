@@ -143,6 +143,7 @@ public class HttpAndHttpsProxy {
                 rspHeader += header_line;
             }
             result=response.body().string();
+            Utils.updateSuccessCount();
 
 
 

@@ -11,7 +11,7 @@ import javax.swing.table.TableColumnModel;
 
 public class BurpExtender implements IBurpExtender,ITab,IProxyListener {
     public final static String extensionName = "Passive Scan Client";
-    public final static String version ="0.4.0";
+    public final static String version ="1.0";
     public static IBurpExtenderCallbacks callbacks;
     public static IExtensionHelpers helpers;
     public static PrintWriter stdout;
@@ -87,9 +87,13 @@ public class BurpExtender implements IBurpExtender,ITab,IProxyListener {
 
             String  url = helpers.analyzeRequest(httpService,reprsp.getRequest()).getUrl().toString();
             url = url.indexOf("?") > 0 ? url.substring(0, url.indexOf("?")) : url;
+            if(Config.Include_SUFFIX_REGX !=null && Config.Include_SUFFIX_REGX.length()!=0 && url.indexOf(Config.Include_SUFFIX_REGX)==-1){
+                return;
+            }
             if(Config.SUFFIX_REGX !=null && Config.SUFFIX_REGX.length()!=0 && url.indexOf(Config.SUFFIX_REGX)!=-1){
                 return;
             }
+
 
             final IHttpRequestResponse resrsp = iInterceptedProxyMessage.getMessageInfo();
 

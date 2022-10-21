@@ -23,6 +23,7 @@ public class GUI implements IMessageEditorController {
     private JTextField tfPassword;
     private JTextField tfDomain;
     private JTextField tfExcludeSuffix;
+    private JTextField tfIncludeSuffix;
     private JToggleButton btnConn;
     private JButton btnClear;
     private JSplitPane splitPane;
@@ -78,7 +79,7 @@ public class GUI implements IMessageEditorController {
 
         tfHost = new JTextField();
         tfHost.setColumns(10);
-        tfHost.setText("10.12.78.221");
+        tfHost.setText("10.129.112.8");
         GridBagConstraints gbc_tfHost = new GridBagConstraints();
         gbc_tfHost.fill = 2;
         gbc_tfHost.insets = new Insets(0, 0, 0, 5);
@@ -95,7 +96,7 @@ public class GUI implements IMessageEditorController {
         ConfigPanel.add(lbPort, gbc_lbPort);
 
         tfPort = new JTextField();
-        tfPort.setText("8899");
+        tfPort.setText("80");
         tfPort.setColumns(10);
         GridBagConstraints gbc_tfPort = new GridBagConstraints();
         gbc_tfPort.fill = 2;
@@ -140,7 +141,7 @@ public class GUI implements IMessageEditorController {
         gbc_tfPassword.gridy = 0;
 //        ConfigPanel.add(tfPassword, gbc_tfPassword);
 
-        lbTimeout = new JLabel("Timeout:");
+        lbTimeout = new JLabel("超时丢弃时间(ms):");
         GridBagConstraints gbc_lbTimeout = new GridBagConstraints();
         gbc_lbTimeout.fill = 2;
         gbc_lbTimeout.gridx = 8;
@@ -158,7 +159,7 @@ public class GUI implements IMessageEditorController {
         ConfigPanel.add(tfTimeout, gbc_tfTimeout);
 
         // 增加间隔时间
-        lbIntervalTime = new JLabel("Interva lTime:");
+        lbIntervalTime = new JLabel("延迟重放时间(ms):");
         GridBagConstraints gbc_lbIntervalTime = new GridBagConstraints();
         gbc_lbIntervalTime.fill = 2;
         gbc_lbIntervalTime.gridx = 10;
@@ -175,7 +176,7 @@ public class GUI implements IMessageEditorController {
         gbc_tfIntervalTime.gridy = 0;
         ConfigPanel.add(tfIntervalTime, gbc_tfIntervalTime);
 
-        
+
         GridBagConstraints gbc_lb1 = new GridBagConstraints();
         gbc_lb1.anchor = 15;
         gbc_lb1.insets = new Insets(0, 0, 0, 5);
@@ -191,13 +192,14 @@ public class GUI implements IMessageEditorController {
                 if(isSelected){
                     btnConn.setText("Stop");
                     Config.IS_RUNNING = true;
-                    Config.PROXY_HOST = tfHost.getText();
-                    Config.PROXY_PORT = Integer.valueOf(tfPort.getText());
-                    Config.PROXY_TIMEOUT = Integer.valueOf(tfTimeout.getText());
+                    Config.PROXY_HOST = tfHost.getText().trim();
+                    Config.PROXY_PORT = Integer.valueOf(tfPort.getText().trim());
+                    Config.PROXY_TIMEOUT = Integer.valueOf(tfTimeout.getText().trim());
                     Config.PROXY_USERNAME = tfUsername.getText();
 //                    Config.PROXY_PASSWORD = tfPassword.getText();
                     Config.DOMAIN_REGX = tfDomain.getText();
                     Config.SUFFIX_REGX = tfExcludeSuffix.getText();
+                    Config.Include_SUFFIX_REGX = tfIncludeSuffix.getText();
                     Config.INTERVAL_TIME = Integer.valueOf(tfIntervalTime.getText());
                     setAllEnabled(false);
                 }else{
@@ -253,9 +255,9 @@ public class GUI implements IMessageEditorController {
         gbc_panel_1.gridy = 1;
         topPanel.add(FilterPanel, gbc_panel_1);
         GridBagLayout gbl_panel_1 = new GridBagLayout();
-        gbl_panel_1.columnWidths = new int[] { 40, 225, 0, 0, 0 };
+        gbl_panel_1.columnWidths = new int[] { 40, 225, 40,225,40,225, 40, 40 };
         gbl_panel_1.rowHeights = new int[] { 0, 0 };
-        gbl_panel_1.columnWeights = new double[] { 0.0D, 0.0D, 0.0D,0.0D,1.0D, 0.0D, 0.0D,0.0D,0.0D,0.0D,0.0D,0.0D,Double.MIN_VALUE };
+        gbl_panel_1.columnWeights = new double[] { 0.0D, 0.0D,0.0D,0.0D, 0.0D,0.0D,1.0D, 0.0D, 0.0D,0.0D,0.0D,0.0D,0.0D,0.0D,Double.MIN_VALUE };
         gbl_panel_1.rowWeights = new double[] { 0.0D, Double.MIN_VALUE };
         FilterPanel.setLayout(gbl_panel_1);
 
@@ -278,7 +280,7 @@ public class GUI implements IMessageEditorController {
         FilterPanel.add(tfDomain, gbc_tfDomain);
 
 
-        JLabel lbExcludeSuffix = new JLabel("Exclude interface:");
+        JLabel lbExcludeSuffix = new JLabel("黑名单接口:");
         GridBagConstraints gbc_lbExcludeSuffix = new GridBagConstraints();
         gbc_lbExcludeSuffix.insets = new Insets(0, 0, 0, 5);
         gbc_lbExcludeSuffix.anchor = 13;
@@ -296,11 +298,28 @@ public class GUI implements IMessageEditorController {
         gbc_tfExcludeSuffix.gridy = 0;
         FilterPanel.add(tfExcludeSuffix, gbc_tfExcludeSuffix);
 
+        JLabel lbIncludeSuffix = new JLabel("白名单接口:");
+        GridBagConstraints gbc_lbIncludeSuffix = new GridBagConstraints();
+        gbc_lbIncludeSuffix.insets = new Insets(0, 0, 0, 5);
+        gbc_lbIncludeSuffix.anchor = 13;
+        gbc_lbIncludeSuffix.fill = 2;
+        gbc_lbIncludeSuffix.gridx = 4;
+        gbc_lbIncludeSuffix.gridy = 0;
+        FilterPanel.add(lbIncludeSuffix, gbc_lbIncludeSuffix);
+
+        tfIncludeSuffix = new JTextField(35);
+        tfIncludeSuffix.setText("");
+        GridBagConstraints gbc_tfIncludeSuffix = new GridBagConstraints();
+        gbc_tfIncludeSuffix.insets = new Insets(0, 0, 0, 5);
+        gbc_tfIncludeSuffix.fill = 2;
+        gbc_tfIncludeSuffix.gridx = 5;
+        gbc_tfIncludeSuffix.gridy = 0;
+        FilterPanel.add(tfIncludeSuffix, gbc_tfIncludeSuffix);
 
         GridBagConstraints gbc_vb = new GridBagConstraints();
         gbc_vb.insets = new Insets(0, 0, 0, 5);
         gbc_vb.fill = 2;
-        gbc_vb.gridx = 4;
+        gbc_vb.gridx = 6;
         gbc_vb.gridy = 0;
         FilterPanel.add(Box.createVerticalBox(), gbc_vb);
 
@@ -308,7 +327,7 @@ public class GUI implements IMessageEditorController {
         GridBagConstraints gbc_lbRequest = new GridBagConstraints();
         gbc_lbRequest.insets = new Insets(0, 0, 0, 5);
         gbc_lbRequest.fill = 2;
-        gbc_lbRequest.gridx = 5;
+        gbc_lbRequest.gridx = 7;
         gbc_lbRequest.gridy = 0;
         FilterPanel.add(lbRequest, gbc_lbRequest);
 
@@ -318,14 +337,14 @@ public class GUI implements IMessageEditorController {
         GridBagConstraints gbc_lbRequestCount = new GridBagConstraints();
         gbc_lbRequestCount.insets = new Insets(0, 0, 0, 5);
         gbc_lbRequestCount.fill = 2;
-        gbc_lbRequestCount.gridx = 6;
+        gbc_lbRequestCount.gridx = 8;
         gbc_lbRequestCount.gridy = 0;
         FilterPanel.add(lbRequestCount, gbc_lbRequestCount);
 
         GridBagConstraints gbc_vb2 = new GridBagConstraints();
         gbc_vb2.insets = new Insets(0, 0, 0, 5);
         gbc_vb2.fill = 2;
-        gbc_vb2.gridx = 7;
+        gbc_vb2.gridx = 9;
         gbc_vb2.gridy = 0;
         FilterPanel.add(Box.createVerticalBox(), gbc_vb);
 
@@ -333,7 +352,7 @@ public class GUI implements IMessageEditorController {
         GridBagConstraints gbc_lbSucces = new GridBagConstraints();
         gbc_lbSucces.insets = new Insets(0, 0, 0, 5);
         gbc_lbSucces.fill = 2;
-        gbc_lbSucces.gridx = 8;
+        gbc_lbSucces.gridx = 10;
         gbc_lbSucces.gridy = 0;
         FilterPanel.add(lbSucces, gbc_lbSucces);
 
@@ -342,14 +361,14 @@ public class GUI implements IMessageEditorController {
         GridBagConstraints gbc_lbSuccesCount = new GridBagConstraints();
         gbc_lbSuccesCount.insets = new Insets(0, 0, 0, 5);
         gbc_lbSuccesCount.fill = 2;
-        gbc_lbSuccesCount.gridx = 9;
+        gbc_lbSuccesCount.gridx = 11;
         gbc_lbSuccesCount.gridy = 0;
         FilterPanel.add(lbSuccesCount, gbc_lbSuccesCount);
 
         GridBagConstraints gbc_vb3 = new GridBagConstraints();
         gbc_vb3.insets = new Insets(0, 0, 0, 5);
         gbc_vb3.fill = 2;
-        gbc_vb3.gridx = 10;
+        gbc_vb3.gridx = 12;
         gbc_vb3.gridy = 0;
         FilterPanel.add(Box.createVerticalBox(), gbc_vb3);
 
@@ -357,7 +376,7 @@ public class GUI implements IMessageEditorController {
         GridBagConstraints gbc_lbFail = new GridBagConstraints();
         gbc_lbFail.insets = new Insets(0, 0, 0, 5);
         gbc_lbFail.fill = 2;
-        gbc_lbFail.gridx = 11;
+        gbc_lbFail.gridx = 13;
         gbc_lbFail.gridy = 0;
         FilterPanel.add(lbFail, gbc_lbFail);
 
@@ -366,7 +385,7 @@ public class GUI implements IMessageEditorController {
         GridBagConstraints gbc_lbFailCount = new GridBagConstraints();
         gbc_lbFailCount.insets = new Insets(0, 0, 0, 5);
         gbc_lbFailCount.fill = 2;
-        gbc_lbFailCount.gridx = 12;
+        gbc_lbFailCount.gridx = 14;
         gbc_lbFailCount.gridy = 0;
         FilterPanel.add(lbFailCount, gbc_lbFailCount);
 
@@ -433,5 +452,6 @@ public class GUI implements IMessageEditorController {
         tfDomain.setEnabled(is);
         tfExcludeSuffix.setEnabled(is);
         tfIntervalTime.setEnabled(is);
+        tfIncludeSuffix.setEnabled(is);
     }
 }
