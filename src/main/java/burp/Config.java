@@ -16,4 +16,5 @@ public class Config {
     public static Integer FAIL_TOTAL = 0;
     
     public static Integer INTERVAL_TIME = 5000;
+    public static boolean REPEATER = false;
 }

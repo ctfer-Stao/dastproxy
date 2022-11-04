@@ -1,7 +1,12 @@
 package burp;
 
+import burp.yaml.LoadConfig;
+import burp.yaml.Rule;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
@@ -9,6 +14,9 @@ import javax.swing.event.ChangeListener;
 
 public class GUI implements IMessageEditorController {
     private JPanel contentPane;
+    private JLabel lbFile;
+    private JTextField tfFile;
+    private JButton btnConfig;
     private JLabel lbHost;
     private JTextField tfHost;
     private JLabel lbPort;
@@ -36,30 +44,113 @@ public class GUI implements IMessageEditorController {
     public static IMessageEditor requestViewer;
     public static IMessageEditor responseViewer;
     public static ITextEditor proxyRspViewer;
+    private JTabbedPane mainTabbedPane;
+    private JCheckBox proxyCheckBox;
+    private JCheckBox repeaterCheckBox;
+    public LoadConfig load;
+    public Rule ConfigRule;
 
 
     public GUI() {
+        load = new LoadConfig();
+        ConfigRule = new Rule();
+        final String ConfigPathFile = load.getConfigPath();
+        Map<String,Object> ConfigMap = load.loadRule(ConfigPathFile);
+        for (String key : ConfigMap.keySet()) {
+            switch (key){
+                case "PROXY_TIMEOUT": ConfigRule.setPROXY_TIMEOUT((int)ConfigMap.get(key));break;
+                case "Include_SUFFIX_REGX":ConfigRule.setInclude_SUFFIX_REGX((String)ConfigMap.get(key));break;
+                case "SUFFIX_REGX": ConfigRule.setSUFFIX_REGX((String)ConfigMap.get(key) );break;
+                case "DOMAIN_REGX": ConfigRule.setDOMAIN_REGX((String)ConfigMap.get(key) );break;
+                case "PROXY_HOST": ConfigRule.setPROXY_HOST((String)ConfigMap.get(key) );break;
+                case "INTERVAL_TIME":ConfigRule.setINTERVAL_TIME((int)ConfigMap.get(key));break;
+                case "PROXY_PORT":ConfigRule.setPROXY_PORT((int)ConfigMap.get(key));break;
+                case "TaskID":ConfigRule.setTaskID((String)ConfigMap.get(key) );break;
+            }
+        }
+
         contentPane = new JPanel();
+        mainTabbedPane = new JTabbedPane();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
 
         ////////////////////////////////////////////////////////////////////
         // topPanel start
         ////////////////////////////////////////////////////////////////////
+
         JPanel topPanel = new JPanel();
         GridBagLayout gridBagLayout = new GridBagLayout();
-        gridBagLayout.columnWidths = new int[] { 0, 0 };
+        gridBagLayout.columnWidths = new int[] { 0, 0,0,0 };
         gridBagLayout.rowHeights = new int[] { 40, 32, 0, 0 };
         gridBagLayout.columnWeights = new double[] { 1.0D, Double.MIN_VALUE };
-        gridBagLayout.rowWeights = new double[] { 0.0D, 0.0D, 1.0D, Double.MIN_VALUE };
+        gridBagLayout.rowWeights = new double[] { 0.0D, 0.0D, 0.0D,1.0D, Double.MIN_VALUE };
         topPanel.setLayout(gridBagLayout);
+
+        JPanel ConfigFilePanel = new JPanel();
+        ConfigFilePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+
+        GridBagConstraints gbc_panel_2 = new GridBagConstraints();
+        gbc_panel_2.insets = new Insets(5, 5, 5, 5);
+        gbc_panel_2.fill = 2;
+        gbc_panel_2.gridx = 0;
+        gbc_panel_2.gridy = 0;
+
+        lbFile = new JLabel("Config File Path:");
+        ConfigFilePanel.add(lbFile);
+
+        tfFile = new JTextField();
+        tfFile.setColumns(40);
+        tfFile.setText(ConfigPathFile);
+        ConfigFilePanel.add(tfFile);
+
+        btnConfig = new JButton("重载配置文件");
+        btnConfig.addActionListener(new ActionListener(){
+
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                Map<String,Object> ConfigMap = load.loadRule(tfFile.getText());
+                for (String key : ConfigMap.keySet()) {
+                    switch (key){
+                        case "PROXY_TIMEOUT": tfTimeout.setText(ConfigMap.get(key).toString());break;
+                        case "Include_SUFFIX_REGX":tfIncludeSuffix.setText(ConfigMap.get(key).toString());break;
+                        case "SUFFIX_REGX": tfExcludeSuffix.setText(ConfigMap.get(key).toString() );break;
+                        case "DOMAIN_REGX": tfDomain.setText(ConfigMap.get(key).toString() );break;
+                        case "PROXY_HOST": tfHost.setText(ConfigMap.get(key).toString());break;
+                        case "INTERVAL_TIME":tfIntervalTime.setText( ConfigMap.get(key).toString());break;
+                        case "PROXY_PORT":tfPort.setText( ConfigMap.get(key).toString());break;
+                        case "TaskID":tfUsername.setText(ConfigMap.get(key).toString() );break;
+                    }
+                }
+
+
+
+            }
+
+        });
+        ConfigFilePanel.add(btnConfig);
+        topPanel.add(ConfigFilePanel, gbc_panel_2);
+
+        //空白面板
+
+        JPanel WhitePanel = new JPanel();
+
+        GridBagConstraints gbc_panel_3 = new GridBagConstraints();
+        gbc_panel_3.insets = new Insets(5, 5, 5, 5);
+        gbc_panel_3.fill = 2;
+        gbc_panel_3.gridx = 0;
+        gbc_panel_3.gridy = 3;
+        topPanel.add(WhitePanel, gbc_panel_3);
+
+
+
+
 
         JPanel ConfigPanel = new JPanel();
         GridBagConstraints gbc_panel = new GridBagConstraints();
         gbc_panel.insets = new Insets(5, 5, 5, 5);
         gbc_panel.fill = 2;
         gbc_panel.gridx = 0;
-        gbc_panel.gridy = 0;
+        gbc_panel.gridy = 1;
         topPanel.add(ConfigPanel, gbc_panel);
 
         GridBagLayout gbl_panel = new GridBagLayout();
@@ -79,7 +170,7 @@ public class GUI implements IMessageEditorController {
 
         tfHost = new JTextField();
         tfHost.setColumns(10);
-        tfHost.setText("10.129.112.8");
+        tfHost.setText(ConfigRule.getPROXY_HOST());
         GridBagConstraints gbc_tfHost = new GridBagConstraints();
         gbc_tfHost.fill = 2;
         gbc_tfHost.insets = new Insets(0, 0, 0, 5);
@@ -96,7 +187,7 @@ public class GUI implements IMessageEditorController {
         ConfigPanel.add(lbPort, gbc_lbPort);
 
         tfPort = new JTextField();
-        tfPort.setText("80");
+        tfPort.setText(ConfigRule.getPROXY_PORT().toString());
         tfPort.setColumns(10);
         GridBagConstraints gbc_tfPort = new GridBagConstraints();
         gbc_tfPort.fill = 2;
@@ -114,7 +205,7 @@ public class GUI implements IMessageEditorController {
         ConfigPanel.add(lbUsername, gbc_lbUsername);
 
         tfUsername = new JTextField();
-        tfUsername.setText("");
+        tfUsername.setText(ConfigRule.getTaskID());
         tfUsername.setColumns(10);
         GridBagConstraints gbc_tfUsername = new GridBagConstraints();
         gbc_tfUsername.fill = 2;
@@ -149,7 +240,7 @@ public class GUI implements IMessageEditorController {
         ConfigPanel.add(lbTimeout, gbc_lbTimeout);
 
         tfTimeout = new JTextField();
-        tfTimeout.setText("5000");
+        tfTimeout.setText(ConfigRule.getPROXY_TIMEOUT().toString());
         tfTimeout.setColumns(5);
         GridBagConstraints gbc_tfTimeout = new GridBagConstraints();
         gbc_tfTimeout.fill = 2;
@@ -167,7 +258,7 @@ public class GUI implements IMessageEditorController {
         ConfigPanel.add(lbIntervalTime, gbc_lbIntervalTime);
 
         tfIntervalTime = new JTextField();
-        tfIntervalTime.setText("5000");
+        tfIntervalTime.setText(ConfigRule.getINTERVAL_TIME().toString());
         tfIntervalTime.setColumns(5);
         GridBagConstraints gbc_tfIntervalTime = new GridBagConstraints();
         gbc_tfIntervalTime.fill = 2;
@@ -201,6 +292,7 @@ public class GUI implements IMessageEditorController {
                     Config.SUFFIX_REGX = tfExcludeSuffix.getText();
                     Config.Include_SUFFIX_REGX = tfIncludeSuffix.getText();
                     Config.INTERVAL_TIME = Integer.valueOf(tfIntervalTime.getText());
+                    Config.REPEATER = repeaterCheckBox.isSelected();
                     setAllEnabled(false);
                 }else{
                     btnConn.setText("Run");
@@ -252,12 +344,12 @@ public class GUI implements IMessageEditorController {
         gbc_panel_1.insets = new Insets(0, 5, 5, 5);
         gbc_panel_1.fill = 2;
         gbc_panel_1.gridx = 0;
-        gbc_panel_1.gridy = 1;
+        gbc_panel_1.gridy = 2;
         topPanel.add(FilterPanel, gbc_panel_1);
         GridBagLayout gbl_panel_1 = new GridBagLayout();
-        gbl_panel_1.columnWidths = new int[] { 40, 225, 40,225,40,225, 40, 40 };
+        gbl_panel_1.columnWidths = new int[] { 40, 225, 40,225,40,225, 40, 40,40,40 };
         gbl_panel_1.rowHeights = new int[] { 0, 0 };
-        gbl_panel_1.columnWeights = new double[] { 0.0D, 0.0D,0.0D,0.0D, 0.0D,0.0D,1.0D, 0.0D, 0.0D,0.0D,0.0D,0.0D,0.0D,0.0D,Double.MIN_VALUE };
+        gbl_panel_1.columnWeights = new double[] { 0.0D, 0.0D,0.0D,0.0D, 0.0D,0.0D,0.0D, 0.0D, 0.0D,1.0D,Double.MIN_VALUE };
         gbl_panel_1.rowWeights = new double[] { 0.0D, Double.MIN_VALUE };
         FilterPanel.setLayout(gbl_panel_1);
 
@@ -271,7 +363,7 @@ public class GUI implements IMessageEditorController {
 
 
         tfDomain = new JTextField(20);
-        tfDomain.setText("");
+        tfDomain.setText(ConfigRule.getDOMAIN_REGX());
         GridBagConstraints gbc_tfDomain = new GridBagConstraints();
         gbc_tfDomain.insets = new Insets(0, 0, 0, 5);
         gbc_tfDomain.fill = 2;
@@ -290,7 +382,7 @@ public class GUI implements IMessageEditorController {
         FilterPanel.add(lbExcludeSuffix, gbc_lbExcludeSuffix);
 
         tfExcludeSuffix = new JTextField(35);
-        tfExcludeSuffix.setText("");
+        tfExcludeSuffix.setText(ConfigRule.getSUFFIX_REGX());
         GridBagConstraints gbc_tfExcludeSuffix = new GridBagConstraints();
         gbc_tfExcludeSuffix.insets = new Insets(0, 0, 0, 5);
         gbc_tfExcludeSuffix.fill = 2;
@@ -308,7 +400,7 @@ public class GUI implements IMessageEditorController {
         FilterPanel.add(lbIncludeSuffix, gbc_lbIncludeSuffix);
 
         tfIncludeSuffix = new JTextField(35);
-        tfIncludeSuffix.setText("");
+        tfIncludeSuffix.setText(ConfigRule.getInclude_SUFFIX_REGX());
         GridBagConstraints gbc_tfIncludeSuffix = new GridBagConstraints();
         gbc_tfIncludeSuffix.insets = new Insets(0, 0, 0, 5);
         gbc_tfIncludeSuffix.fill = 2;
@@ -316,87 +408,130 @@ public class GUI implements IMessageEditorController {
         gbc_tfIncludeSuffix.gridy = 0;
         FilterPanel.add(tfIncludeSuffix, gbc_tfIncludeSuffix);
 
+
+        //复选框 选择哪些模块转发
+        JLabel lbCheckBox = new JLabel("哪些模块转发:");
+        GridBagConstraints gbc_lbCheckBox = new GridBagConstraints();
+        gbc_lbCheckBox.insets = new Insets(0, 0, 0, 5);
+        gbc_lbCheckBox.anchor = 13;
+        gbc_lbCheckBox.fill = 2;
+        gbc_lbCheckBox.gridx = 6;
+        gbc_lbCheckBox.gridy = 0;
+//        FilterPanel.add(lbCheckBox, gbc_lbIncludeSuffix);
+
+        proxyCheckBox = new JCheckBox();
+        repeaterCheckBox = new JCheckBox();
+
+        proxyCheckBox.setEnabled(false);
+        proxyCheckBox.setSelected(true);
+        proxyCheckBox.setText("proxy");
+        GridBagConstraints gbc_proxyCheckBox = new GridBagConstraints();
+        gbc_proxyCheckBox.insets = new Insets(0, 0, 0, 5);
+        gbc_proxyCheckBox.anchor = 13;
+        gbc_proxyCheckBox.fill = 2;
+        gbc_proxyCheckBox.gridx = 7;
+        gbc_proxyCheckBox.gridy = 0;
+        FilterPanel.add(proxyCheckBox, gbc_proxyCheckBox);
+
+        repeaterCheckBox.setEnabled(true);
+        repeaterCheckBox.setText("repeater");
+        GridBagConstraints gbc_repeaterCheckBox = new GridBagConstraints();
+        gbc_repeaterCheckBox.insets = new Insets(0, 0, 0, 5);
+        gbc_repeaterCheckBox.anchor = 13;
+        gbc_repeaterCheckBox.fill = 2;
+        gbc_repeaterCheckBox.gridx = 8;
+        gbc_repeaterCheckBox.gridy = 0;
+        FilterPanel.add(repeaterCheckBox, gbc_repeaterCheckBox);
+
+
+
+
         GridBagConstraints gbc_vb = new GridBagConstraints();
+        gbc_vb.anchor = 15;
         gbc_vb.insets = new Insets(0, 0, 0, 5);
-        gbc_vb.fill = 2;
-        gbc_vb.gridx = 6;
+        gbc_vb.gridx = 9;
         gbc_vb.gridy = 0;
-        FilterPanel.add(Box.createVerticalBox(), gbc_vb);
+        ConfigPanel.add(new JLabel(""), gbc_vb);
 
-        JLabel lbRequest = new JLabel("Total:");
-        GridBagConstraints gbc_lbRequest = new GridBagConstraints();
-        gbc_lbRequest.insets = new Insets(0, 0, 0, 5);
-        gbc_lbRequest.fill = 2;
-        gbc_lbRequest.gridx = 7;
-        gbc_lbRequest.gridy = 0;
-        FilterPanel.add(lbRequest, gbc_lbRequest);
-
-
+//        JLabel lbRequest = new JLabel("Total:");
+//        GridBagConstraints gbc_lbRequest = new GridBagConstraints();
+//        gbc_lbRequest.insets = new Insets(0, 0, 0, 5);
+//        gbc_lbRequest.fill = 2;
+//        gbc_lbRequest.gridx = 7;
+//        gbc_lbRequest.gridy = 0;
+//        FilterPanel.add(lbRequest, gbc_lbRequest);
+//
+//
         lbRequestCount = new JLabel("0");
-        lbRequestCount.setForeground(new Color(0,0,255));
-        GridBagConstraints gbc_lbRequestCount = new GridBagConstraints();
-        gbc_lbRequestCount.insets = new Insets(0, 0, 0, 5);
-        gbc_lbRequestCount.fill = 2;
-        gbc_lbRequestCount.gridx = 8;
-        gbc_lbRequestCount.gridy = 0;
-        FilterPanel.add(lbRequestCount, gbc_lbRequestCount);
+//        lbRequestCount.setForeground(new Color(0,0,255));
+//        GridBagConstraints gbc_lbRequestCount = new GridBagConstraints();
+//        gbc_lbRequestCount.insets = new Insets(0, 0, 0, 5);
+//        gbc_lbRequestCount.fill = 2;
+//        gbc_lbRequestCount.gridx = 8;
+//        gbc_lbRequestCount.gridy = 0;
+//        FilterPanel.add(lbRequestCount, gbc_lbRequestCount);
 
-        GridBagConstraints gbc_vb2 = new GridBagConstraints();
-        gbc_vb2.insets = new Insets(0, 0, 0, 5);
-        gbc_vb2.fill = 2;
-        gbc_vb2.gridx = 9;
-        gbc_vb2.gridy = 0;
-        FilterPanel.add(Box.createVerticalBox(), gbc_vb);
-
-        JLabel lbSucces = new JLabel("Success:");
-        GridBagConstraints gbc_lbSucces = new GridBagConstraints();
-        gbc_lbSucces.insets = new Insets(0, 0, 0, 5);
-        gbc_lbSucces.fill = 2;
-        gbc_lbSucces.gridx = 10;
-        gbc_lbSucces.gridy = 0;
-        FilterPanel.add(lbSucces, gbc_lbSucces);
+//        GridBagConstraints gbc_vb2 = new GridBagConstraints();
+//        gbc_vb2.insets = new Insets(0, 0, 0, 5);
+//        gbc_vb2.fill = 2;
+//        gbc_vb2.gridx = 9;
+//        gbc_vb2.gridy = 0;
+//        FilterPanel.add(Box.createVerticalBox(), gbc_vb);
+//
+//        JLabel lbSucces = new JLabel("Success:");
+//        GridBagConstraints gbc_lbSucces = new GridBagConstraints();
+//        gbc_lbSucces.insets = new Insets(0, 0, 0, 5);
+//        gbc_lbSucces.fill = 2;
+//        gbc_lbSucces.gridx = 10;
+//        gbc_lbSucces.gridy = 0;
+//        FilterPanel.add(lbSucces, gbc_lbSucces);
 
         lbSuccesCount = new JLabel("0");
-        lbSuccesCount.setForeground(new Color(0, 255, 0));
-        GridBagConstraints gbc_lbSuccesCount = new GridBagConstraints();
-        gbc_lbSuccesCount.insets = new Insets(0, 0, 0, 5);
-        gbc_lbSuccesCount.fill = 2;
-        gbc_lbSuccesCount.gridx = 11;
-        gbc_lbSuccesCount.gridy = 0;
-        FilterPanel.add(lbSuccesCount, gbc_lbSuccesCount);
-
-        GridBagConstraints gbc_vb3 = new GridBagConstraints();
-        gbc_vb3.insets = new Insets(0, 0, 0, 5);
-        gbc_vb3.fill = 2;
-        gbc_vb3.gridx = 12;
-        gbc_vb3.gridy = 0;
-        FilterPanel.add(Box.createVerticalBox(), gbc_vb3);
-
+//        lbSuccesCount.setForeground(new Color(0, 255, 0));
+//        GridBagConstraints gbc_lbSuccesCount = new GridBagConstraints();
+//        gbc_lbSuccesCount.insets = new Insets(0, 0, 0, 5);
+//        gbc_lbSuccesCount.fill = 2;
+//        gbc_lbSuccesCount.gridx = 11;
+//        gbc_lbSuccesCount.gridy = 0;
+//        FilterPanel.add(lbSuccesCount, gbc_lbSuccesCount);
+//
+//        GridBagConstraints gbc_vb3 = new GridBagConstraints();
+//        gbc_vb3.insets = new Insets(0, 0, 0, 5);
+//        gbc_vb3.fill = 2;
+//        gbc_vb3.gridx = 12;
+//        gbc_vb3.gridy = 0;
+//        FilterPanel.add(Box.createVerticalBox(), gbc_vb3);
+//
         JLabel lbFail = new JLabel("Fail:");
-        GridBagConstraints gbc_lbFail = new GridBagConstraints();
-        gbc_lbFail.insets = new Insets(0, 0, 0, 5);
-        gbc_lbFail.fill = 2;
-        gbc_lbFail.gridx = 13;
-        gbc_lbFail.gridy = 0;
-        FilterPanel.add(lbFail, gbc_lbFail);
-
+//        GridBagConstraints gbc_lbFail = new GridBagConstraints();
+//        gbc_lbFail.insets = new Insets(0, 0, 0, 5);
+//        gbc_lbFail.fill = 2;
+//        gbc_lbFail.gridx = 13;
+//        gbc_lbFail.gridy = 0;
+//        FilterPanel.add(lbFail, gbc_lbFail);
+//
         lbFailCount = new JLabel("0");
-        lbFailCount.setForeground(new Color(255, 0, 0));
-        GridBagConstraints gbc_lbFailCount = new GridBagConstraints();
-        gbc_lbFailCount.insets = new Insets(0, 0, 0, 5);
-        gbc_lbFailCount.fill = 2;
-        gbc_lbFailCount.gridx = 14;
-        gbc_lbFailCount.gridy = 0;
-        FilterPanel.add(lbFailCount, gbc_lbFailCount);
+//        lbFailCount.setForeground(new Color(255, 0, 0));
+//        GridBagConstraints gbc_lbFailCount = new GridBagConstraints();
+//        gbc_lbFailCount.insets = new Insets(0, 0, 0, 5);
+//        gbc_lbFailCount.fill = 2;
+//        gbc_lbFailCount.gridx = 14;
+//        gbc_lbFailCount.gridy = 0;
+//        FilterPanel.add(lbFailCount, gbc_lbFailCount);
+        splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setDividerLocation(0.5);
+        mainTabbedPane.addTab("配置",topPanel);
+        mainTabbedPane.addTab("流量",splitPane);
+        contentPane.add(mainTabbedPane);
 
-        contentPane.add(topPanel,BorderLayout.NORTH);
+//        contentPane.add(topPanel,BorderLayout.NORTH);
         ////////////////////////////////////////////////////////////////////
         // topPanl end
         ////////////////////////////////////////////////////////////////////
 
-        splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        splitPane.setDividerLocation(0.5);
-        contentPane.add(splitPane, BorderLayout.CENTER);
+//        splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+//        splitPane.setDividerLocation(0.5);
+//        contentPane.add(splitPane, BorderLayout.CENTER);
 
         HttpLogTableModel model = new HttpLogTableModel();
         logTable = new HttpLogTable(model);
@@ -427,6 +562,8 @@ public class GUI implements IMessageEditorController {
         BurpExtender.callbacks.customizeUiComponent(contentPane);
     }
 
+
+
     public Component getComponet(){
         return contentPane;
     }
@@ -453,5 +590,9 @@ public class GUI implements IMessageEditorController {
         tfExcludeSuffix.setEnabled(is);
         tfIntervalTime.setEnabled(is);
         tfIncludeSuffix.setEnabled(is);
+        repeaterCheckBox.setEnabled(is);
+        tfFile.setEnabled(is);
+        btnConfig.setEnabled(is);
+
     }
 }

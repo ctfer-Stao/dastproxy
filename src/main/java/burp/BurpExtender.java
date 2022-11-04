@@ -9,9 +9,9 @@ import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-public class BurpExtender implements IBurpExtender,ITab,IProxyListener {
+public class BurpExtender implements IBurpExtender,ITab,IProxyListener,IHttpListener,IContextMenuFactory,IExtensionStateListener {
     public final static String extensionName = "Passive Scan Client";
-    public final static String version ="1.0";
+    public final static String version ="1.1";
     public static IBurpExtenderCallbacks callbacks;
     public static IExtensionHelpers helpers;
     public static PrintWriter stdout;
@@ -19,7 +19,8 @@ public class BurpExtender implements IBurpExtender,ITab,IProxyListener {
     public static GUI gui;
     public static final List<LogEntry> log = new ArrayList<LogEntry>();
     public static BurpExtender burpExtender;
-    private ExecutorService executorService;
+    public ExecutorService executorService;
+    public IContextMenuInvocation invocation;
 
     @Override
     public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
@@ -35,6 +36,8 @@ public class BurpExtender implements IBurpExtender,ITab,IProxyListener {
             public void run() {
                 BurpExtender.this.callbacks.addSuiteTab(BurpExtender.this);
                 BurpExtender.this.callbacks.registerProxyListener(BurpExtender.this);
+                BurpExtender.this.callbacks.registerHttpListener(BurpExtender.this);
+                BurpExtender.this.callbacks.registerContextMenuFactory(BurpExtender.this);
                 stdout.println(Utils.getBanner());
             }
         });
@@ -124,5 +127,76 @@ public class BurpExtender implements IBurpExtender,ITab,IProxyListener {
                 }
             });
         }
+    }
+
+    @Override
+    public void processHttpMessage(int i, boolean b, IHttpRequestResponse iHttpRequestResponse) {
+        if (i == IBurpExtenderCallbacks.TOOL_REPEATER && Config.IS_RUNNING && Config.REPEATER) {
+            if (b) {
+                final IHttpRequestResponse resrsp = iHttpRequestResponse;
+                IHttpService httpService = resrsp.getHttpService();
+                String host = resrsp.getHttpService().getHost();
+                if(Config.DOMAIN_REGX !=null && Config.DOMAIN_REGX.length()!=0 && !Utils.isMathch(Config.DOMAIN_REGX,host)){
+                    return;
+                }
+
+                String  url = helpers.analyzeRequest(httpService,resrsp.getRequest()).getUrl().toString();
+                url = url.indexOf("?") > 0 ? url.substring(0, url.indexOf("?")) : url;
+                if(Config.Include_SUFFIX_REGX !=null && Config.Include_SUFFIX_REGX.length()!=0 && url.indexOf(Config.Include_SUFFIX_REGX)==-1){
+                    return;
+                }
+                if(Config.SUFFIX_REGX !=null && Config.SUFFIX_REGX.length()!=0 && url.indexOf(Config.SUFFIX_REGX)!=-1){
+                    return;
+                }
+                executorService.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        synchronized(log) {
+                            int row = log.size();
+                            String method = helpers.analyzeRequest(resrsp).getMethod();
+                            Map<String, String> mapResult = null;
+                            try {
+                                mapResult = HttpAndHttpsProxy.Proxy(resrsp);
+                            } catch (InterruptedException e) {
+                                // TODO Auto-generated catch block
+                                e.printStackTrace();
+                            }
+
+                            log.add(new LogEntry(1,
+                                    callbacks.saveBuffersToTempFiles(resrsp), helpers.analyzeRequest(resrsp).getUrl(),
+                                    method,
+                                    mapResult)
+                            );
+                            GUI.logTable.getHttpLogTableModel().fireTableRowsInserted(row, row);
+                        }
+                    }
+                });
+
+
+            }
+        }
+
+    }
+
+    @Override
+    public List<JMenuItem> createMenuItems(IContextMenuInvocation iContextMenuInvocation) {
+        this.invocation = iContextMenuInvocation;
+        List<JMenuItem> listMenuItems = new ArrayList<JMenuItem>();
+        //子菜单
+        if(iContextMenuInvocation.getToolFlag() == IBurpExtenderCallbacks.TOOL_PROXY ||iContextMenuInvocation.getToolFlag() == IBurpExtenderCallbacks.TOOL_REPEATER ){
+        JMenuItem menuItem;
+        menuItem = new SendToDastMenu(this);
+//        menuItem = new JMenuItem("发送到dast");
+
+//        //父级菜单
+//        JMenu jMenu = new JMenu("Her0in");
+//        jMenu.add(menuItem);
+        listMenuItems.add(menuItem);}
+        return listMenuItems;
+    }
+
+    @Override
+    public void extensionUnloaded() {
+
     }
 }
